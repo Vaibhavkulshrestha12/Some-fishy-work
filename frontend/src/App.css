@@ -36,34 +36,3 @@
     transform: rotate(360deg);
   }
 }
-.App {
-  text-align: center;
-  padding: 20px;
-}
-
-.resources {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-}
-
-.resource-card {
-  border: 1px solid #ccc;
-  padding: 20px;
-  width: 200px;
-  border-radius: 8px;
-  background: white;
-  text-align: center;
-}
-
-.resource-card img {
-  width: 50px;
-  height: 50px;
-  margin-bottom: 10px;
-}
-
-a {
-  text-decoration: none;
-  color: blue;
-}

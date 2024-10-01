@@ -7,6 +7,7 @@ import (
     "github.com/dgrijalva/jwt-go"
     "time"
     "os"
+    "github.com/joho/godotenv"
 )
 
 type Resource struct {
@@ -15,7 +16,6 @@ type Resource struct {
     Icon        string `json:"icon"`
     Description string `json:"description"`
 }
-
 
 var resources = []Resource{
     {
@@ -32,14 +32,12 @@ var resources = []Resource{
     },
 }
 
-
 type User struct {
     Username string `json:"username"`
     Password string `json:"password"`
 }
 
-var users = map[string]string{} 
-
+var users = map[string]string{}
 
 func enableCORS(w http.ResponseWriter) {
     w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -47,18 +45,24 @@ func enableCORS(w http.ResponseWriter) {
     w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 }
 
-
 func main() {
+    // Load environment variables
+    err := godotenv.Load(".env")
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+
+    // Set up routes
     http.HandleFunc("/", homePage)
-    http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+    http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./build/static"))))
+
     http.HandleFunc("/api/resources", getResources)
     http.HandleFunc("/api/register", registerUser)
     http.HandleFunc("/api/login", loginUser)
-    
+
     log.Println("Server starting on :8080")
     log.Fatal(http.ListenAndServe(":8080", nil))
 }
-
 
 func homePage(w http.ResponseWriter, r *http.Request) {
     if r.URL.Path != "/" {
@@ -69,7 +73,6 @@ func homePage(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("Welcome to the Resource Links API"))
 }
 
-
 func getResources(w http.ResponseWriter, r *http.Request) {
     enableCORS(w)
     w.Header().Set("Content-Type", "application/json")
@@ -78,10 +81,9 @@ func getResources(w http.ResponseWriter, r *http.Request) {
     }
 }
 
-
 func registerUser(w http.ResponseWriter, r *http.Request) {
     enableCORS(w)
-    
+
     if r.Method == "OPTIONS" {
         return
     }
@@ -98,7 +100,6 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
     users[user.Username] = user.Password
     w.Write([]byte("User registered successfully"))
 }
-
 
 func loginUser(w http.ResponseWriter, r *http.Request) {
     enableCORS(w)
@@ -119,12 +120,14 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
         "username": user.Username,
-        "exp":      time.Now().Add(time.Hour * 24).Unix(), 
+        "exp":      time.Now().Add(time.Hour * 24).Unix(),
     })
 
+    // Retrieve the JWT secret from environment variables
     jwtSecret := os.Getenv("JWT_SECRET")
     if jwtSecret == "" {
-        jwtSecret = "secret" 
+        http.Error(w, "JWT secret is not set", http.StatusInternalServerError)
+        return
     }
 
     tokenString, err := token.SignedString([]byte(jwtSecret))
