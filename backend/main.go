@@ -46,7 +46,7 @@ func enableCORS(w http.ResponseWriter) {
 }
 
 func main() {
-    // Load environment variables
+    
     err := godotenv.Load(".env")
     if err != nil {
         log.Fatal("Error loading .env file")
@@ -123,7 +123,7 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
         "exp":      time.Now().Add(time.Hour * 24).Unix(),
     })
 
-    // Retrieve the JWT secret from environment variables
+   
     jwtSecret := os.Getenv("JWT_SECRET")
     if jwtSecret == "" {
         http.Error(w, "JWT secret is not set", http.StatusInternalServerError)
